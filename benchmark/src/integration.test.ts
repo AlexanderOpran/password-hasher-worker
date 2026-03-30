@@ -80,12 +80,12 @@ describe('Basic Correctness', () => {
 // ═══════════════════════════════════════════════════════════════
 
 describe('PHC String Format', () => {
-  it('uses exact expected parameters (m=65536, t=1, p=1)', async () => {
+  it('uses exact expected parameters (m=65536, t=3, p=1)', async () => {
     const { hash } = await client.hash('phc-format-test');
     const fields = parsePHC(hash);
     expect(fields.algorithm).toBe('argon2id');
     expect(fields.m).toBe(65536);
-    expect(fields.t).toBe(1);
+    expect(fields.t).toBe(3);
     expect(fields.p).toBe(1);
   });
 });
@@ -176,7 +176,7 @@ describe('RPC Error Codes', () => {
   // ── Verify errors ────────────────────────────────────────
 
   it('empty password on verify → VALIDATION_EMPTY_PASSWORD', async () => {
-    const res = await client.verifyRaw('$argon2id$v=19$m=65536,t=1,p=1$salt$hash', '');
+    const res = await client.verifyRaw('$argon2id$v=19$m=65536,t=3,p=1$salt$hash', '');
     expect(res.status).toBeGreaterThanOrEqual(400);
     const err = parseError(res.body);
     expect(err.code).toBe('VALIDATION_EMPTY_PASSWORD');

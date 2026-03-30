@@ -11,7 +11,7 @@
  *
  * This suite validates that the worker implementation meets or exceeds
  * OWASP requirements with a financial-grade Argon2id configuration
- * (64 MiB, t=1, p=1, 256-bit output).
+ * (64 MiB, t=3, p=1, 256-bit output).
  *
  * Run: npx vitest run benchmark/src/compliance.test.ts
  */
@@ -28,9 +28,10 @@ const client = new HasherClient(BENCHMARK_PROXY_URL, 30_000);
 
 // ═══════════════════════════════════════════════════════════════════
 //   OWASP-01: Algorithm Selection
-//   OWASP minimum: 19 MiB, t=2, p=1. OWASP preferred: 46 MiB, t=1, p=1.
-//   We exceed both with a financial-grade configuration: 64 MiB, t=1, p=1
-//   — maximizes memory cost within Cloudflare Workers' 128 MiB limit.
+//   OWASP minimum: 19 MiB, t=2, p=1.
+//   RFC 9106 §4 second recommended option: 64 MiB, t=3, p=1.
+//   We use the RFC's recommended configuration for memory-constrained
+//   environments, which also exceeds OWASP's minimum requirements.
 // ═══════════════════════════════════════════════════════════════════
 
 describe('OWASP-01–04: Algorithm, memory, time cost, parallelism', () => {
@@ -43,10 +44,10 @@ describe('OWASP-01–04: Algorithm, memory, time cost, parallelism', () => {
   it('all financial-grade parameters are met in a single hash', async () => {
     const { hash } = await client.hash('owasp-params');
     const fields = expectValidPHC(hash);
-    // expectValidPHC asserts: argon2id, v=19, m≥65536, t≥1, p≥1,
+    // expectValidPHC asserts: argon2id, v=19, m≥65536, t≥3, p≥1,
     // salt≥128bits, output=256bits — this test pins the exact requirement.
     expect(fields.m).toBeGreaterThanOrEqual(64 * 1024);
-    expect(fields.t).toBeGreaterThanOrEqual(1);
+    expect(fields.t).toBeGreaterThanOrEqual(3);
     expect(fields.p).toBeGreaterThanOrEqual(1);
   });
 });

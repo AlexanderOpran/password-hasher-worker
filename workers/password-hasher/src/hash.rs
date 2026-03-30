@@ -6,12 +6,12 @@ use zeroize::{Zeroize, Zeroizing};
 
 use crate::error::HashError;
 
-/// Argon2id parameters — financial-grade configuration.
-/// 64 MiB memory, 1 iteration, 1 lane, 32-byte output.
-/// Maximises memory cost to make GPU/ASIC attacks prohibitively expensive
-/// while fitting within Cloudflare Workers paid tier (128 MiB).
+/// Argon2id parameters — RFC 9106 §4 second recommended option.
+/// 64 MiB memory, 3 iterations, 1 lane, 32-byte output.
+/// This is the RFC's recommended configuration for memory-constrained
+/// environments, and exceeds OWASP's minimum (19 MiB, t=2, p=1).
 pub const ARGON2_MEMORY_KIB: u32 = 64 * 1024;
-pub const ARGON2_TIME_COST: u32 = 1;
+pub const ARGON2_TIME_COST: u32 = 3;
 pub const ARGON2_PARALLELISM: u32 = 1;
 pub const ARGON2_OUTPUT_LEN: usize = 32;
 

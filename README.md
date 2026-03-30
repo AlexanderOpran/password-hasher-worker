@@ -6,7 +6,7 @@ Designed as the hashing backend for [better-auth](https://www.better-auth.com/) 
 
 ## Key Properties
 
-- **Argon2id** (RFC 9106) with financial-grade parameters (64 MiB memory, 1 iteration, 1 lane, 32-byte output)
+- **Argon2id** (RFC 9106 §4 recommended option: 64 MiB memory, 3 iterations, 1 lane, 32-byte output)
 - **OWASP / NIST / PCI DSS** compliant, verified by an automated compliance test suite
 - **NFKC Unicode normalization** on all passwords before hashing
 - **Secure memory** with passwords zeroized after use via the `zeroize` crate
@@ -39,7 +39,7 @@ Direct HTTP requests return `404`. The worker is intended to be called exclusive
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
 | Memory | 64 MiB (65,536 KiB) | Maximizes cost within Cloudflare's 128 MiB worker limit |
-| Time cost | 1 iteration | OWASP preferred minimum |
+| Time cost | 3 iterations | RFC 9106 §4 recommended for memory-constrained environments |
 | Parallelism | 1 lane | Workers are single-threaded |
 | Output | 32 bytes (256 bits) | Standard hash length |
 | Salt | 16 bytes (128 bits) | Generated via `crypto.getRandomValues()` (BoringSSL CSPRNG) |
