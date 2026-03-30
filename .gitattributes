@@ -1,0 +1,6 @@
+# Enforce LF line endings for all text files
+* text=auto eol=lf
+
+# Yarn Berry — mark bundled binaries so Git doesn't diff/merge them
+/.yarn/releases/** binary
+/.yarn/plugins/** binary

@@ -1,0 +1,40 @@
+[workspace]
+members = ["workers/password-hasher"]
+resolver = "2"
+
+[workspace.dependencies]
+argon2 = "0.5"
+getrandom = { version = "0.3", features = ["wasm_js"] }
+unicode-normalization = "0.1"
+worker = "0.7"
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+zeroize = "1"
+thiserror = "2"
+
+# Optimize the WASM binary for size — smaller binary = faster cold start on Workers.
+[profile.release]
+opt-level = "s"       # optimize for size over speed (Argon2 is memory-bound, not CPU-bound)
+lto = true            # full link-time optimization — eliminates dead code across crates
+codegen-units = 1     # single codegen unit gives LLVM maximum optimization visibility
+strip = "symbols"     # strip debug symbols from the final WASM binary
+
+[workspace.lints.clippy]
+# Correctness
+cast_possible_truncation = "warn"
+cast_sign_loss = "warn"
+cast_possible_wrap = "warn"
+
+# Performance (important for WASM)
+large_stack_frames = "warn"
+needless_pass_by_value = "warn"
+cloned_instead_of_copied = "warn"
+redundant_clone = "warn"
+
+# Style / readability
+manual_let_else = "warn"
+implicit_clone = "warn"
+uninlined_format_args = "warn"
+
+[workspace.lints.rust]
+unsafe_code = "deny"

@@ -1,0 +1,21 @@
+[package]
+name = "password-hasher"
+version = "0.1.0"
+edition = "2024"
+description = "Cloudflare Worker for Argon2id password hashing and verification."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+worker.workspace = true
+argon2.workspace = true
+getrandom.workspace = true
+unicode-normalization.workspace = true
+wasm-bindgen.workspace = true
+js-sys.workspace = true
+zeroize.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

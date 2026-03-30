@@ -1,0 +1,42 @@
+{
+  // Shared compiler options + project references orchestrator.
+  // Child tsconfigs extend this for compilerOptions; the references
+  // and files fields are NOT inherited by extends.
+  "compilerOptions": {
+    // --------------------------------------------------
+    // 1. Language & Modules
+    // --------------------------------------------------
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "noUncheckedSideEffectImports": true,
+
+    // --------------------------------------------------
+    // 2. Strictness & Consistency
+    // --------------------------------------------------
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "erasableSyntaxOnly": true,
+
+    // --------------------------------------------------
+    // 3. Build & Output
+    // --------------------------------------------------
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+
+  // Project references — isolates @cloudflare/workers-types from @types/node.
+  "references": [
+    { "path": "./workers/benchmark-proxy" },
+    { "path": "./benchmark" }
+  ],
+  "files": []
+}

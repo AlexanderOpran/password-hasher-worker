@@ -1,0 +1,2 @@
+# WASM has a default 1 MiB stack. Flag functions that use excessive stack space.
+stack-size-threshold = 512000
