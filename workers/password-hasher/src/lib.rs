@@ -12,17 +12,19 @@ use crate::error::HashError;
 // this worker is intended to be called exclusively via service binding
 // from another worker (e.g. a better-auth worker).
 
-/// Convert a [`HashError`] into a JS `Error` with a machine-readable code.
+/// Convert a [`HashError`] into a JS `Error` for the RPC boundary.
 ///
-/// - `error.message` → human-readable description (from `Display`)
-/// - `error.name`    → machine-readable error code (e.g. `VALIDATION_EMPTY_PASSWORD`)
+/// `Error.message` is set to `"CODE: human message"` (from `Display`),
+/// e.g. `"VALIDATION_EMPTY_PASSWORD: Password must not be empty."`.
 ///
-/// `Error.name` is part of the standard Error interface and survives
-/// Cloudflare service-binding RPC serialization (structured clone).
+/// We intentionally do NOT set `Error.name` because Cloudflare RPC in
+/// production only preserves prototype names of built-in error types
+/// (TypeError, RangeError, etc.). Custom `.name` values on plain `Error`
+/// instances get folded into `.message` as `"${name}: ${message}"`,
+/// which would double-prefix the code. The message is the single
+/// source of truth for error codes across the RPC boundary.
 fn hash_error_to_js(e: &HashError) -> JsValue {
-    let error = js_sys::Error::new(&e.to_string());
-    error.set_name(e.code());
-    error.into()
+    js_sys::Error::new(&e.to_string()).into()
 }
 
 /// RPC: hash a password with Argon2id. Called via service binding.

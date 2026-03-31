@@ -1,44 +1,36 @@
-use thiserror::Error;
+use std::fmt;
 
-#[derive(Debug, Error)]
+/// Errors produced by the password hashing and verification operations.
+///
+/// Each variant has a machine-readable code (via [`HashError::code`]) and a
+/// human-readable description. The [`Display`] impl formats both as
+/// `"CODE: human message"` — this is the canonical format transmitted via
+/// `Error.message` across the Cloudflare service-binding RPC boundary.
+#[derive(Debug)]
 pub(crate) enum HashError {
     // ── Validation errors ─────────────────────────────────────
-    #[error("Password must not be empty.")]
     EmptyPassword,
-
-    #[error("Password exceeds the maximum supported length of {0} bytes.")]
     PasswordTooLong(usize),
-
-    #[error(
-        "Password exceeds the maximum supported length of {0} bytes after Unicode normalization (NFKC)."
-    )]
     NormalizedPasswordTooLong(usize),
-
-    #[error("Hash must not be empty.")]
     EmptyHash,
-
-    #[error("Hash exceeds the maximum supported length of {0} bytes.")]
     HashTooLong(usize),
-
-    #[error("Invalid Argon2id hash: {0}")]
     InvalidHash(String),
-
-    #[error("Only Argon2id hashes are accepted.")]
     UnsupportedAlgorithm,
 
     // ── Cryptographic errors ──────────────────────────────────
-    #[error("Argon2id hashing failed: {0}")]
     HashingFailed(String),
-
-    #[error("Argon2id verification failed: {0}")]
     VerificationFailed(String),
-
-    #[error("Failed to generate Argon2 salt: {0}")]
     RngFailed(String),
-
-    #[error("Failed to encode Argon2 salt: {0}")]
     SaltEncodingFailed(String),
 }
+
+impl fmt::Display for HashError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}: {}", self.code(), self.human_message())
+    }
+}
+
+impl std::error::Error for HashError {}
 
 impl HashError {
     /// Machine-readable error code for RPC consumers.
@@ -47,8 +39,11 @@ impl HashError {
     ///   - `VALIDATION_*` — invalid input from the caller
     ///   - `CRYPTO_*`     — internal cryptographic operation failure
     ///
-    /// Transmitted via `Error.name` on the JS boundary so it survives
-    /// Cloudflare service-binding RPC serialization.
+    /// Transmitted as a prefix in `Error.message` on the JS boundary
+    /// (e.g. `"VALIDATION_EMPTY_PASSWORD: Password must not be empty."`).
+    /// Cloudflare service-binding RPC does not preserve custom `Error.name`
+    /// values in production (only built-in types like TypeError survive),
+    /// so the code is embedded in the message instead.
     pub fn code(&self) -> &'static str {
         match self {
             Self::EmptyPassword => "VALIDATION_EMPTY_PASSWORD",
@@ -62,6 +57,33 @@ impl HashError {
             Self::VerificationFailed(_) => "CRYPTO_VERIFY_FAILED",
             Self::RngFailed(_) => "CRYPTO_RNG_FAILED",
             Self::SaltEncodingFailed(_) => "CRYPTO_SALT_ENCODING_FAILED",
+        }
+    }
+
+    /// Human-readable error description (without the code prefix).
+    fn human_message(&self) -> String {
+        match self {
+            Self::EmptyPassword => "Password must not be empty.".to_string(),
+            Self::PasswordTooLong(n) => {
+                format!("Password exceeds the maximum supported length of {n} bytes.")
+            }
+            Self::NormalizedPasswordTooLong(n) => {
+                format!("Password exceeds the maximum supported length of {n} bytes after Unicode normalization (NFKC).")
+            }
+            Self::EmptyHash => "Hash must not be empty.".to_string(),
+            Self::HashTooLong(n) => {
+                format!("Hash exceeds the maximum supported length of {n} bytes.")
+            }
+            Self::InvalidHash(detail) => format!("Invalid Argon2id hash: {detail}"),
+            Self::UnsupportedAlgorithm => "Only Argon2id hashes are accepted.".to_string(),
+            Self::HashingFailed(detail) => format!("Argon2id hashing failed: {detail}"),
+            Self::VerificationFailed(detail) => {
+                format!("Argon2id verification failed: {detail}")
+            }
+            Self::RngFailed(detail) => format!("Failed to generate Argon2 salt: {detail}"),
+            Self::SaltEncodingFailed(detail) => {
+                format!("Failed to encode Argon2 salt: {detail}")
+            }
         }
     }
 }

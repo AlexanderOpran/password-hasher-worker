@@ -467,4 +467,39 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn display_format_includes_code_prefix() {
+        // Every error's Display output must be "CODE: human message" so that
+        // the benchmark-proxy (and any RPC consumer) can parse the code from
+        // Error.message identically in local dev and production.
+        let cases: Vec<HashError> = vec![
+            HashError::EmptyPassword,
+            HashError::PasswordTooLong(128),
+            HashError::NormalizedPasswordTooLong(128),
+            HashError::EmptyHash,
+            HashError::HashTooLong(4096),
+            HashError::InvalidHash("test".into()),
+            HashError::UnsupportedAlgorithm,
+            HashError::HashingFailed("test".into()),
+            HashError::VerificationFailed("test".into()),
+            HashError::RngFailed("test".into()),
+            HashError::SaltEncodingFailed("test".into()),
+        ];
+        for e in &cases {
+            let display = e.to_string();
+            let expected_prefix = format!("{}: ", e.code());
+            assert!(
+                display.starts_with(&expected_prefix),
+                "{:?} Display should start with '{expected_prefix}', got: {display}",
+                e
+            );
+            // Human message (after the code prefix) must not be empty.
+            assert!(
+                display.len() > expected_prefix.len(),
+                "{:?} Display should have a human message after the code prefix",
+                e
+            );
+        }
+    }
 }

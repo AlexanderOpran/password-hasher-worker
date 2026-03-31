@@ -39,17 +39,20 @@ function auditLog(fields: Record<string, unknown>): void {
 /**
  * Extract a structured error from an RPC exception.
  *
- * The password-hasher worker sets `Error.name` to a machine-readable code
- * (e.g. `VALIDATION_EMPTY_PASSWORD`). If the name is the default `"Error"`,
- * no code is forwarded.
+ * The password-hasher worker always formats `Error.message` as
+ * `"CODE: human message"` (e.g. `"VALIDATION_EMPTY_PASSWORD: Password
+ * must not be empty."`). This works identically in local dev and
+ * production because the code is embedded in the message, not in
+ * `Error.name` (which Cloudflare RPC does not preserve in production
+ * for plain Error instances — only built-in types like TypeError survive).
  */
 function extractRpcError(err: unknown): { code?: string; message: string } {
   if (err instanceof Error) {
-    const code
-      = err.name !== 'Error' && err.name !== ''
-        ? err.name
-        : undefined;
-    return { message: err.message, ...(code !== undefined ? { code } : {}) };
+    const match = /^([A-Z]+_[A-Z_]+): (.+)$/s.exec(err.message);
+    if (match) {
+      return { code: match[1], message: match[2] };
+    }
+    return { message: err.message };
   }
   return { message: String(err) };
 }

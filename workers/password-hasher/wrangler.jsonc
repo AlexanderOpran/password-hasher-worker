@@ -11,6 +11,6 @@
   // Omitting the flag avoids loading Node.js polyfills, reducing cold start time.
   "observability": { "enabled": true },
   "build": {
-    "command": "worker-build --release"
+    "command": "worker-build --release workers/password-hasher"
   }
 }
