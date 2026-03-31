@@ -199,23 +199,23 @@ Results from a full benchmark run (`npm run benchmark:full`) on the **Cloudflare
 
 | Concurrency | Mean | Median | P95 | P99 | Throughput |
 |:-----------:|-----:|-------:|----:|----:|-----------:|
-| 1 | 82 ms | 80 ms | 94 ms | 99 ms | 12.2 req/s |
-| 2 | 89 ms | 86 ms | 104 ms | 173 ms | 22.2 req/s |
-| 5 | 156 ms | 106 ms | 260 ms | 266 ms | 30.5 req/s |
-| 10 | 282 ms | 254 ms | 500 ms | 556 ms | 32.5 req/s |
-| 20 | 285 ms | 228 ms | 662 ms | 731 ms | 58.9 req/s |
+| 1 | 236 ms | 235 ms | 252 ms | 257 ms | 4.2 req/s |
+| 2 | 243 ms | 239 ms | 254 ms | 337 ms | 8.1 req/s |
+| 5 | 565 ms | 477 ms | 715 ms | 724 ms | 8.6 req/s |
+| 10 | 1,100 ms | 1,135 ms | 1,197 ms | 1,353 ms | 8.6 req/s |
+| 20 | 808 ms | 550 ms | 1,978 ms | 2,452 ms | 20.3 req/s |
 
 ### Verify
 
 | Concurrency | Mean | Median | P95 | P99 | Throughput |
 |:-----------:|-----:|-------:|----:|----:|-----------:|
-| 1 | 86 ms | 88 ms | 100 ms | 103 ms | 11.5 req/s |
-| 2 | 90 ms | 91 ms | 104 ms | 119 ms | 22.0 req/s |
-| 5 | 153 ms | 156 ms | 237 ms | 249 ms | 32.2 req/s |
-| 10 | 315 ms | 250 ms | 581 ms | 603 ms | 29.0 req/s |
-| 20 | 195 ms | 95 ms | 513 ms | 602 ms | 74.3 req/s |
+| 1 | 242 ms | 241 ms | 259 ms | 264 ms | 4.1 req/s |
+| 2 | 293 ms | 247 ms | 483 ms | 493 ms | 6.8 req/s |
+| 5 | 571 ms | 576 ms | 703 ms | 723 ms | 8.6 req/s |
+| 10 | 1,112 ms | 1,158 ms | 1,363 ms | 1,379 ms | 8.6 req/s |
+| 20 | 565 ms | 512 ms | 1,221 ms | 1,445 ms | 30.6 req/s |
 
-> **Key takeaway:** Single-request hash latency is ~80 ms. Workers handles concurrent requests well, with throughput scaling near-linearly up to concurrency 5. At higher concurrency the platform queues requests, increasing tail latency while maintaining 100% success.
+> **Key takeaway:** Single-request hash latency is ~236 ms. The platform maintains 100% success at all concurrency levels, with throughput plateauing around 8.6 req/s for concurrency 5–10 and bursting higher at concurrency 20 as the platform fans out requests across isolates.
 
 ## Scripts Reference
 

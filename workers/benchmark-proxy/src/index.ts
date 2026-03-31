@@ -37,24 +37,40 @@ function auditLog(fields: Record<string, unknown>): void {
 }
 
 /**
- * Extract a structured error from an RPC exception.
+ * Extracts structured error info from password-hasher RPC errors.
  *
- * The password-hasher worker always formats `Error.message` as
- * `"CODE: human message"` (e.g. `"VALIDATION_EMPTY_PASSWORD: Password
- * must not be empty."`). This works identically in local dev and
- * production because the code is embedded in the message, not in
- * `Error.name` (which Cloudflare RPC does not preserve in production
- * for plain Error instances — only built-in types like TypeError survive).
+ * The worker always formats `Error.message` as `"CODE: human message"`
+ * (e.g. `"VALIDATION_EMPTY_PASSWORD: Password must not be empty."`).
+ * This format is used because Cloudflare RPC does not preserve `Error.name`
+ * (or custom properties) in production — only the message survives.
  */
-function extractRpcError(err: unknown): { code?: string; message: string } {
-  if (err instanceof Error) {
-    const match = /^([A-Z]+_[A-Z_]+): (.+)$/s.exec(err.message);
-    if (match) {
-      return { code: match[1], message: match[2] };
-    }
-    return { message: err.message };
+interface RpcErrorExtract {
+  code?: string;
+  message: string;
+}
+
+const ERROR_CODE_SEPARATOR = ': ';
+const ERROR_CODE_REGEX = /^[A-Z][A-Z_]+$/;
+
+function extractRpcError(err: unknown): RpcErrorExtract {
+  if (!(err instanceof Error)) {
+    return { message: String(err) };
   }
-  return { message: String(err) };
+
+  const separatorIndex = err.message.indexOf(ERROR_CODE_SEPARATOR);
+
+  if (separatorIndex !== -1) {
+    const potentialCode = err.message.slice(0, separatorIndex);
+
+    if (ERROR_CODE_REGEX.test(potentialCode)) {
+      return {
+        code: potentialCode,
+        message: err.message.slice(separatorIndex + ERROR_CODE_SEPARATOR.length),
+      };
+    }
+  }
+
+  return { message: err.message };
 }
 
 export default class BenchmarkProxy extends WorkerEntrypoint<Env> {
